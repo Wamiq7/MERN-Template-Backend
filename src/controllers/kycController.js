@@ -13,7 +13,7 @@ const completeKycSubmission = async (req, res) => {
     const files = req.files;
 
     if (!files?.document || !files.selfie) {
-      return res.status(400).json({ error: "DIdentity Document is required" });
+      return res.status(400).json({ error: "Identity Document is required" });
     }
     let docUpload, selfieUpload;
     try {

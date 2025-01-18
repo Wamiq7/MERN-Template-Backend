@@ -1,4 +1,5 @@
 const cors = require("cors");
+const { BACKEND_URL } = require("./env");
 
 const corsConfig = () => {
   return cors({
@@ -13,6 +14,7 @@ const corsConfig = () => {
       const additionalOrigins = [
         "http://localhost:5000",
         "http://127.0.0.1:5000",
+        BACKEND_URL,
       ];
 
       if (

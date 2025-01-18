@@ -7,6 +7,7 @@ const customCss = fs.readFileSync(
   "utf8"
 );
 const basicAuth = require("express-basic-auth");
+const { BACKEND_URL } = require("../env");
 
 const options = {
   definition: {
@@ -20,6 +21,10 @@ const options = {
       {
         url: "http://localhost:5000",
         description: "Local Development Server",
+      },
+      {
+        url: BACKEND_URL,
+        description: "Dynamic Environment Server",
       },
     ],
     components: {
