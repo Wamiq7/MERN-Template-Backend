@@ -48,8 +48,9 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    refreshToken: {
-      type: String,
+    refreshTokens: {
+      type: [String], // Array to store multiple refresh tokens
+      default: [],
     },
     resetToken: {
       type: String,

@@ -1,6 +1,5 @@
 const { verifyAccessToken } = require("../services/tokenService");
 const User = require("../models/userModel"); // Import your User model
-const Vendor = require("../models/vendorModel"); // Import your User model
 
 // Middleware to check JWT and extract user data
 const authenticateJWT = async (req, res, next) => {

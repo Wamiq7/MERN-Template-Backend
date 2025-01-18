@@ -1,5 +1,4 @@
 const User = require("../models/userModel");
-const Vendor = require("../models/vendorModel");
 
 /**
  * List users with search and filter options

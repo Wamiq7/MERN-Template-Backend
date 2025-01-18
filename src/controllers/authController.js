@@ -151,62 +151,24 @@ const login = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Check if email is verified
     if (!user.emailVerified) {
       return res.status(400).json({
         message: "Email is not verified. Please verify your email to proceed.",
       });
     }
 
-    // Validate password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // Handle OTP for 'admin'  roles
-    if (user.role === "admin") {
-      // Generate OTP
-      const otpDetails = otpService.generateOtp();
-
-      // Save OTP in the user object
-      user.otp = { value: otpDetails.value, expiresAt: otpDetails.expiresAt };
-      await user.save();
-
-      // Simulate sending OTP (or send via email/SMS in production)
-      console.log(`OTP for ${email}: ${otpDetails.value}`);
-      const emailBody = `
-        <p>Hello,</p>
-        <p>A login attempt was made for your account. To complete the login process, please use the following OTP:</p>
-        <h2>${otpDetails.value}</h2>
-        <p>If you did not attempt to log in, please secure your account by changing your password immediately or contacting support.</p>
-        <p>Best regards,</p>
-        <p>Team XYZ</p>
-      `;
-
-      // Send the email
-      const sendOtpMail = await sendEmailMessage(
-        "Login Attempted", // Subject
-        emailBody, // Body (HTML formatted)
-        AWS_SES_SENDER, // Sender email
-        email // Recipient email
-      );
-      if (!sendOtpMail) throw new Error("No OTP sent :(");
-
-      return res.status(200).json({
-        message: "OTP sent. Please enter OTP to complete login.",
-      });
-    }
-
-    // Generate JWT tokens
     const accessToken = tokenService.generateAccessToken(user._id, user.role);
     const refreshToken = tokenService.generateRefreshToken(user._id, user.role);
 
-    // Save refresh token in DB
-    user.refreshToken = refreshToken;
+    // Add new refresh token to the array
+    user.refreshTokens.push(refreshToken);
     await user.save();
 
-    // Return tokens in response
     res.status(200).json({
       message: "Login successful",
       user: {
@@ -312,19 +274,31 @@ const refreshToken = async (req, res) => {
 
     // Find user in DB
     const user = await User.findById(decoded.userId);
-    if (!user || user.refreshToken !== refreshToken) {
+    if (!user || !user.refreshTokens.includes(refreshToken)) {
       return res.status(403).json({ message: "Invalid refresh token" });
     }
 
-    // Generate new access token
+    // Generate new tokens
     const newAccessToken = tokenService.generateAccessToken(
       user._id,
       user.role
     );
+    const newRefreshToken = tokenService.generateRefreshToken(
+      user._id,
+      user.role
+    );
+
+    // Update refresh tokens array (replace the old one with the new one)
+    user.refreshTokens = user.refreshTokens.filter((token) => token !== refreshToken);
+    user.refreshTokens.push(newRefreshToken);
+    await user.save();
 
     res.status(200).json({
-      message: "New access token generated",
-      accessToken: newAccessToken,
+      message: "New tokens generated",
+      tokens: {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+      },
     });
   } catch (error) {
     console.error("Refresh token error:", error);
@@ -336,19 +310,38 @@ const refreshToken = async (req, res) => {
 
 // Logout
 const logout = async (req, res) => {
-  const { userId } = req.body;
+  const { userId, refreshToken } = req.body;
 
   try {
-    // Find user and clear refresh token
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    user.refreshToken = null; // Clear the refresh token
+    // Remove the specific refresh token
+    user.refreshTokens = user.refreshTokens.filter((token) => token !== refreshToken);
     await user.save();
 
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     console.error("Logout error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const logoutAll = async (req, res) => {
+  const { userId } = req.body;
+
+  try {
+    // Find the user
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Clear all refresh tokens
+    user.refreshTokens = [];
+    await user.save();
+
+    res.status(200).json({ message: "Logged out from all devices successfully" });
+  } catch (error) {
+    console.error("Logout All error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -391,5 +384,6 @@ module.exports = {
   resetPassword,
   refreshToken,
   logout,
+  logoutAll,
   changePassword,
 };
