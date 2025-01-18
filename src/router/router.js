@@ -12,6 +12,6 @@ router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
 router.use("/kyc", kycRoutes);
 router.use("/contact-us", contactUsRoutes);
-router.use("/passport", passportRoutes);
+router.use("/auth", passportRoutes);
 
 module.exports = router;
