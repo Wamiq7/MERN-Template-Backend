@@ -4,6 +4,8 @@ const cookieParser = require("cookie-parser");
 const corsConfig = require("../config/cors");
 const swaggerDocs = require("../config/swagger/index");
 const routes = require("../router/router");
+const passport = require("passport");
+require("../services/passport");
 
 // Load environment variables
 dotenv.config();
@@ -15,6 +17,8 @@ const server = express();
 server.use(express.json());
 server.use(cookieParser());
 server.use(corsConfig());
+server.use(passport.initialize());
+
 
 // Routes
 server.use("/api", routes);

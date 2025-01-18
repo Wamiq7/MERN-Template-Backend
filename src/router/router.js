@@ -8,7 +8,7 @@ const passportRoutes = require("../routes/passportRoutes");
 
 const router = express.Router();
 
-router.use("/auth", authRoutes);
+// router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
 router.use("/kyc", kycRoutes);
 router.use("/contact-us", contactUsRoutes);
