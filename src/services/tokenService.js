@@ -1,4 +1,13 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/userModel");
+
+
+// Generate Access Token
+const generateSocialTokens = (userEmail, role) => {
+  return jwt.sign({ userId, role }, process.env.JWT_ACCESS_SECRET, {
+    expiresIn: "15m", // 15 minutes expiration time
+  });
+};
 
 // Generate Access Token
 const generateAccessToken = (userId, role) => {
@@ -33,6 +42,7 @@ const verifyRefreshToken = (token) => {
 };
 
 module.exports = {
+  generateSocialTokens,
   generateAccessToken,
   generateRefreshToken,
   verifyAccessToken,

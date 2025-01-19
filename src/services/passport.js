@@ -148,8 +148,9 @@ passport.use(
             clientSecret: GOOGLE_CLIENT_SECRET,
             callbackURL: `${BACKEND_URL}/api/auth/google/callback`,
         },
-        function (accessToken, refreshToken, profile, cb) {
-            cb(null, profile);
+        function (accessToken, refreshToken, profile, done) {
+            const user = { ...profile };
+            done(null, user);
             // User.findOrCreate({ googleId: profile.id }, function (err, user) {
             //   return cb(err, user);
             // });
