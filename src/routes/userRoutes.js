@@ -95,7 +95,7 @@ const { authenticateJWT, authorizeRoles } = require("../middlewares/auth");
  */
 router.get("/",
     authenticateJWT,
-    authorizeRoles([]),
+    authorizeRoles(["user"]),
     userController.listUsers
 );
 
@@ -143,7 +143,7 @@ router.get("/",
  */
 router.patch("/:id/status",
     authenticateJWT,
-    authorizeRoles(["admin"]),
+    authorizeRoles(["user"]),
     userController.changeStatus
 );
 
@@ -188,7 +188,7 @@ router.patch("/:id/status",
  */
 router.get("/:id",
     authenticateJWT,
-    authorizeRoles([]),
+    authorizeRoles(["user"]),
     userController.getUserDetail
 );
 
