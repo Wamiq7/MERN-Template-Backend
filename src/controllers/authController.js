@@ -256,7 +256,7 @@ const resetPassword = async (req, res) => {
 
     res.status(200).json({ message: "Password updated successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error", error });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -290,7 +290,9 @@ const refreshToken = async (req, res) => {
     );
 
     // Update refresh tokens array (replace the old one with the new one)
-    user.refreshTokens = user.refreshTokens.filter((token) => token !== refreshToken);
+    user.refreshTokens = user.refreshTokens.filter(
+      (token) => token !== refreshToken
+    );
     user.refreshTokens.push(newRefreshToken);
     await user.save();
 
@@ -319,7 +321,9 @@ const logout = async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     // Remove the specific refresh token
-    user.refreshTokens = user.refreshTokens.filter((token) => token !== refreshToken);
+    user.refreshTokens = user.refreshTokens.filter(
+      (token) => token !== refreshToken
+    );
     await user.save();
 
     res.status(200).json({ message: "Logged out successfully" });
@@ -341,7 +345,9 @@ const logoutAll = async (req, res) => {
     user.refreshTokens = [];
     await user.save();
 
-    res.status(200).json({ message: "Logged out from all devices successfully" });
+    res
+      .status(200)
+      .json({ message: "Logged out from all devices successfully" });
   } catch (error) {
     console.error("Logout All error:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -382,7 +388,10 @@ const socialAuth = async (req, res) => {
     const { userId, role } = req.user; // Extracted from the decoded token in middleware
 
     // Check if the user exists
-    let user = await User.findOne({ _id: new mongoose.Types.ObjectId(userId), role: role });
+    let user = await User.findOne({
+      _id: new mongoose.Types.ObjectId(userId),
+      role: role,
+    });
 
     // Generate access and refresh tokens
     const accessToken = tokenService.generateAccessToken(userId, role);
