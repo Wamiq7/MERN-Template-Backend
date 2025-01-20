@@ -4,6 +4,7 @@ const otpService = require("../services/otpService");
 const tokenService = require("../services/tokenService");
 const { sendEmailMessage } = require("../services/sendEmail");
 const { AWS_SES_SENDER, FRONTEND_URL } = require("../config/env");
+const mongoose = require("mongoose");
 
 // Sign Up
 const signUp = async (req, res) => {
@@ -377,27 +378,15 @@ const changePassword = async (req, res) => {
 
 const socialAuth = async (req, res) => {
   try {
-    const { email, role } = req.user; // Extracted from the decoded token in middleware
+    const { userId, role } = req.user; // Extracted from the decoded token in middleware
 
     // Check if the user exists
-    let user = await User.findOne({ email });
-
-    // If not, create a new user
-    if (!user) {
-      user = new User({
-        email,
-        role: role || "user", // Default role if not provided
-      });
-      await user.save();
-    }
+    let user = await User.findOne({ _id: new mongoose.Types.ObjectId(userId), role: role });
 
     // Generate access and refresh tokens
-    const accessToken = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_ACCESS_SECRET, {
-      expiresIn: "15m",
-    });
-    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET, {
-      expiresIn: "7d",
-    });
+    const accessToken = tokenService.generateAccessToken(userId, role);
+
+    const refreshToken = tokenService.generateRefreshToken(userId, role);
 
     // Add the refresh token to the user's record
     user.refreshTokens.push(refreshToken);
