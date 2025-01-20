@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
+const bcrypt = require("bcrypt");
 
 // Generate Access Token
 const generateAccessToken = (userId, role) => {
@@ -43,7 +44,7 @@ const findOrCreateUserAndGenerateTokens = async (email, role = "user") => {
       // If user doesn't exist, create a new one
       user = await User.create({
         email,
-        password: null, // Or handle password based on your requirement (e.g., for social logins)
+        password: await bcrypt.hash("", 10), // Or handle password based on your requirement (e.g., for social logins)
         role,
         emailVerified: true, // Assuming email verification is handled for social logins
         status: "Active",
