@@ -280,7 +280,7 @@ router.post("/refresh-token", refreshToken);
  *       500:
  *         description: Internal server error.
  */
-router.post("/logout", logout);
+router.post("/logout", authenticateJWT, logout);
 
 /**
  * @swagger
@@ -333,7 +333,7 @@ router.post("/logout", logout);
  *                   type: string
  *                   example: Internal server error
  */
-router.post("/logout-all", logoutAll);
+router.post("/logout-all", authenticateJWT, logoutAll);
 
 /**
  * @swagger

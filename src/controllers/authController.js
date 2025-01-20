@@ -311,7 +311,8 @@ const refreshToken = async (req, res) => {
 
 // Logout
 const logout = async (req, res) => {
-  const { userId, refreshToken } = req.body;
+  const { refreshToken } = req.body;
+  const { userId } = req.user;
 
   try {
     const user = await User.findById(userId);
@@ -329,7 +330,7 @@ const logout = async (req, res) => {
 };
 
 const logoutAll = async (req, res) => {
-  const { userId } = req.body;
+  const { userId } = req.user;
 
   try {
     // Find the user
