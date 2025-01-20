@@ -5,8 +5,8 @@ const User = require("../models/userModel"); // Import your User model
 const authenticateJWT = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
-  if (authHeader) {
-    const token = authHeader.split(" ")[1];
+  if (authHeader || req.body.token) {
+    const token = authHeader.split(" ")[1] ?? req.body.token;
 
     try {
       const decoded = verifyAccessToken(token);

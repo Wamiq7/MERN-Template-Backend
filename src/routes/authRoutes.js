@@ -414,16 +414,20 @@ router.post("/changePassword", authenticateJWT, changePassword);
 /**
  * @swagger
  * /api/auth/socialAuth:
- *   get:
+ *   post:
  *     summary: Authenticate a user via a social token
  *     tags: [Auth]
- *     parameters:
- *       - in: header
- *         name: Authorization
- *         required: true
- *         schema:
- *           type: string
- *         description: Bearer token for authentication.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 description: Social authentication token.
+ *                 example: "eyJhbGciOiJIUzI1NiIsInR..."
  *     responses:
  *       200:
  *         description: User authenticated successfully.
@@ -470,9 +474,9 @@ router.post("/changePassword", authenticateJWT, changePassword);
  *                   type: string
  *                   example: "Internal server error."
  */
-router.get(
+router.post(
   "/socialAuth",
-  authenticateJWT, // Middleware to handle the token
+  authenticateJWT,
   socialAuth
 );
 
