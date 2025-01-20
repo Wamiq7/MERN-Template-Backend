@@ -61,6 +61,7 @@ const userSchema = new mongoose.Schema(
       default: "Active",
     },
     location: String,
+    socialData: { type: Array },
     kyc: kycSchema,
   },
   {

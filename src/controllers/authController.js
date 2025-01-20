@@ -153,8 +153,45 @@ const login = async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     if (!user.emailVerified) {
-      return res.status(400).json({
-        message: "Email is not verified. Please verify your email to proceed.",
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Generate OTP
+      const otpDetails = otpService.generateOtp();
+
+      await User.findOneAndUpdate(
+        {
+          email,
+          password: hashedPassword,
+        },
+        {
+          otp: { value: otpDetails.value, expiresAt: otpDetails.expiresAt }
+        }
+      );
+
+      // Simulate sending OTP (log it for simplicity)
+      console.log(`OTP for ${email}: ${otpDetails.value}`);
+
+      const emailBody = `
+    <p>Hello,</p>
+    <p>Thank you for signing up for XYZ! To verify your email address and complete your account creation, please use the following OTP:</p>
+    <h2>${otpDetails.value}</h2>
+    <p>If you did not sign up for XYZ, please ignore this email.</p>
+    <p>Best regards,</p>
+    <p>Team XYZ</p>
+  `;
+
+      // Send the email
+      const sendOtpMail = await sendEmailMessage(
+        "Email Verification OTP", // Subject
+        emailBody, // Body (HTML formatted)
+        AWS_SES_SENDER, // Sender email
+        email // Recipient email
+      );
+      if (!sendOtpMail) throw new Error("No OTP sent :(");
+
+      return res.status(201).json({
+        message: "User registered. Verify OTP to complete registration.",
       });
     }
 

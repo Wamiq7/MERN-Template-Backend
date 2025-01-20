@@ -35,7 +35,7 @@ const verifyRefreshToken = (token) => {
 };
 
 // Find user or create one, then generate tokens
-const findOrCreateUserAndGenerateTokens = async (email, role = "user") => {
+const findOrCreateUserAndGenerateTokens = async (email, role = "user", socialData) => {
   try {
     // Check if user exists in the database
     let user = await User.findOne({ email });
@@ -48,7 +48,14 @@ const findOrCreateUserAndGenerateTokens = async (email, role = "user") => {
         role,
         emailVerified: true, // Assuming email verification is handled for social logins
         status: "Active",
+        socialData: [{ type: "google", data: socialData }] || [], // Initialize socialData if provided
       });
+    } else {
+      // If user exists, check if socialData is provided and push it to the user's socialData array
+      if (socialData && Array.isArray(socialData)) {
+        // Assuming socialData is an array of objects, you can push it to the array
+        user.socialData.push({ type: "google", data: socialData });
+      }
     }
 
     // Generate Access and Refresh tokens
