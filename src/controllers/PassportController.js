@@ -1,11 +1,11 @@
 const {
-  generateSocialTokens,
+  findOrCreateUserAndGenerateTokens,
 } = require("../services/tokenService");
 const { FRONTEND_URL } = require("../config/env");
 
 const oauthSuccessHandler = async (req, res) => {
   try {
-    const token = generateSocialTokens(req?.user?._json?.email, "user");
+    const token = findOrCreateUserAndGenerateTokens(req?.user?._json?.email, "user");
     res.redirect(`${FRONTEND_URL}/authenticating?token=${token}`);
     return;
   } catch (error) {

@@ -375,6 +375,48 @@ const changePassword = async (req, res) => {
   }
 };
 
+const socialAuth = async (req, res) => {
+  try {
+    const { email, role } = req.user; // Extracted from the decoded token in middleware
+
+    // Check if the user exists
+    let user = await User.findOne({ email });
+
+    // If not, create a new user
+    if (!user) {
+      user = new User({
+        email,
+        role: role || "user", // Default role if not provided
+      });
+      await user.save();
+    }
+
+    // Generate access and refresh tokens
+    const accessToken = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_ACCESS_SECRET, {
+      expiresIn: "15m",
+    });
+    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET, {
+      expiresIn: "7d",
+    });
+
+    // Add the refresh token to the user's record
+    user.refreshTokens.push(refreshToken);
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      data: user,
+      tokens: {
+        accessToken,
+        refreshToken,
+      },
+    });
+  } catch (error) {
+    console.error("Error during social auth:", error.message);
+    res.status(500).json({ success: false, message: "Internal server error." });
+  }
+};
+
 module.exports = {
   signUp,
   verifyOtp,
@@ -386,4 +428,5 @@ module.exports = {
   logout,
   logoutAll,
   changePassword,
+  socialAuth,
 };

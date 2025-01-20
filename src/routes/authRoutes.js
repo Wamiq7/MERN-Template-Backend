@@ -10,6 +10,7 @@ const {
   logout,
   logoutAll,
   changePassword,
+  socialAuth,
 } = require("../controllers/authController");
 const {
   validateSignUp,
@@ -409,5 +410,70 @@ router.post("/logout-all", logoutAll);
  *                   example: "Error details here"
  */
 router.post("/changePassword", authenticateJWT, changePassword);
+
+/**
+ * @swagger
+ * /api/auth/socialAuth:
+ *   get:
+ *     summary: Authenticate a user via a social token
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: header
+ *         name: Authorization
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Bearer token for authentication.
+ *     responses:
+ *       200:
+ *         description: User authenticated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *                 tokens:
+ *                   type: object
+ *                   properties:
+ *                     accessToken:
+ *                       type: string
+ *                       example: "eyJhbGciOiJIUzI1NiIsInR..."
+ *                     refreshToken:
+ *                       type: string
+ *                       example: "eyJhbGciOiJIUzI1NiIsInR..."
+ *       401:
+ *         description: Unauthorized or invalid token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Invalid or expired token."
+ *       500:
+ *         description: Server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error."
+ */
+router.get(
+  "/socialAuth",
+  authenticateJWT, // Middleware to handle the token
+  socialAuth
+);
 
 module.exports = router;
