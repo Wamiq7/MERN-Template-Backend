@@ -190,8 +190,8 @@ const login = async (req, res) => {
       );
       if (!sendOtpMail) throw new Error("No OTP sent :(");
 
-      return res.status(201).json({
-        message: "User registered. Verify OTP to complete registration.",
+      return res.status(400).json({
+        message: "Email is not verified. Please verify your email to proceed.",
       });
     }
 
