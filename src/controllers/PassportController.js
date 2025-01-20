@@ -5,7 +5,7 @@ const { FRONTEND_URL } = require("../config/env");
 
 const oauthSuccessHandler = async (req, res) => {
   try {
-    const token = findOrCreateUserAndGenerateTokens(req?.user?._json?.email, "user");
+    const token = await findOrCreateUserAndGenerateTokens(req?.user?._json?.email, "user");
     res.redirect(`${FRONTEND_URL}/authenticating?token=${token}`);
     return;
   } catch (error) {
