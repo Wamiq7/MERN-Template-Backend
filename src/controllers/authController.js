@@ -161,8 +161,7 @@ const login = async (req, res) => {
 
       await User.findOneAndUpdate(
         {
-          email,
-          password: hashedPassword,
+          email: email,
         },
         {
           otp: { value: otpDetails.value, expiresAt: otpDetails.expiresAt }
