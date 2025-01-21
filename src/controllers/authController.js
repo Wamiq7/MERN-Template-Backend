@@ -82,7 +82,7 @@ const verifyOtp = async (req, res) => {
     // Return tokens in response
     res.status(200).json({
       message: "OTP verified successfully",
-      user: {
+      data: {
         id: user._id,
         email: user.email,
         role: user.role,
@@ -208,7 +208,7 @@ const login = async (req, res) => {
 
     res.status(200).json({
       message: "Login successful",
-      user: {
+      data: {
         id: user._id,
         email: user.email,
         role: user.role,
