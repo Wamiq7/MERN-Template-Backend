@@ -146,40 +146,33 @@ const resendOtp = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, clientType } = req.body; // 'clientType' indicates 'web' or 'native'
 
   try {
+    // Find user by email
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
+    // Handle unverified email
     if (!user.emailVerified) {
-      // Hash password
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Generate OTP
       const otpDetails = otpService.generateOtp();
 
+      // Update OTP in the database
       await User.findOneAndUpdate(
-        {
-          email: email,
-        },
-        {
-          otp: { value: otpDetails.value, expiresAt: otpDetails.expiresAt }
-        }
+        { email },
+        { otp: { value: otpDetails.value, expiresAt: otpDetails.expiresAt } }
       );
 
-      // Simulate sending OTP (log it for simplicity)
-      console.log(`OTP for ${email}: ${otpDetails.value}`);
-
       const emailBody = `
-    <p>Hello,</p>
-    <p>Thank you for signing up for XYZ! To verify your email address and complete your account creation, please use the following OTP:</p>
-    <h2>${otpDetails.value}</h2>
-    <p>If you did not sign up for XYZ, please ignore this email.</p>
-    <p>Best regards,</p>
-    <p>Team XYZ</p>
-  `;
-
+        <p>Hello,</p>
+        <p>Thank you for signing up for XYZ! To verify your email address and complete your account creation, please use the following OTP:</p>
+        <h2>${otpDetails.value}</h2>
+        <p>If you did not sign up for XYZ, please ignore this email.</p>
+        <p>Best regards,</p>
+        <p>Team XYZ</p>
+      `;
       // Send the email
       const sendOtpMail = await sendEmailMessage(
         "Email Verification OTP", // Subject
@@ -187,42 +180,72 @@ const login = async (req, res) => {
         AWS_SES_SENDER, // Sender email
         email // Recipient email
       );
-      if (!sendOtpMail) throw new Error("No OTP sent :(");
+
+      if (!sendOtpMail) {
+        throw new Error("Failed to send OTP email.");
+      }
 
       return res.status(400).json({
         message: "Email is not verified. Please verify your email to proceed.",
       });
     }
 
+    // Validate password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
+    // Generate tokens
     const accessToken = tokenService.generateAccessToken(user._id, user.role);
     const refreshToken = tokenService.generateRefreshToken(user._id, user.role);
 
-    // Add new refresh token to the array
+    // Save refresh token to user record
     user.refreshTokens.push(refreshToken);
     await user.save();
 
-    res.status(200).json({
-      message: "Login successful",
-      data: {
-        id: user._id,
-        email: user.email,
-        role: user.role,
-        name: user.kyc?.name,
-        selfie: user.kyc?.selfie,
-      },
-      tokens: {
-        accessToken,
-        refreshToken,
-      },
-    });
+    if (clientType === "web") {
+      // Web Client: Store refresh token in HttpOnly cookie
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "Strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
+      return res.status(200).json({
+        message: "Login successful",
+        data: {
+          id: user._id,
+          email: user.email,
+          role: user.role,
+          name: user.kyc?.name,
+          selfie: user.kyc?.selfie,
+        },
+        token: accessToken, // Access token only
+      });
+    } else if (clientType === "native") {
+      // React Native Client: Send refresh token in the response body
+      return res.status(200).json({
+        message: "Login successful",
+        data: {
+          id: user._id,
+          email: user.email,
+          role: user.role,
+          name: user.kyc?.name,
+          selfie: user.kyc?.selfie,
+        },
+        tokens: {
+          accessToken,
+          refreshToken,
+        },
+      });
+    } else {
+      return res.status(400).json({ message: "Invalid client type" });
+    }
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal server error", error });
+    console.error("Login Error: ", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
