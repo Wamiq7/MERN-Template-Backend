@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 // Generate Access Token
 const generateAccessToken = (userId, role) => {
   return jwt.sign({ userId, role }, process.env.JWT_ACCESS_SECRET, {
-    expiresIn: "15m", // 15 minutes expiration time
+    expiresIn: "5", // 5m for 15 minutes expiration time
   });
 };
 
@@ -35,7 +35,11 @@ const verifyRefreshToken = (token) => {
 };
 
 // Find user or create one, then generate tokens
-const findOrCreateUserAndGenerateTokens = async (email, role = "user", socialData) => {
+const findOrCreateUserAndGenerateTokens = async (
+  email,
+  role = "user",
+  socialData
+) => {
   try {
     // Check if user exists in the database
     let user = await User.findOne({ email });
