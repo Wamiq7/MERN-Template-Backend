@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 // Generate Access Token
 const generateAccessToken = (userId, role) => {
   return jwt.sign({ userId, role }, process.env.JWT_ACCESS_SECRET, {
-    expiresIn: "5", // 5m for 15 minutes expiration time
+    expiresIn: "5m", // 5m for 15 minutes expiration time
   });
 };
 
