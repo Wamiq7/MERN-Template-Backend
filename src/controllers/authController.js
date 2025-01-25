@@ -320,7 +320,7 @@ const resetPassword = async (req, res) => {
 };
 
 const refreshToken = async (req, res) => {
-  const { refreshToken } = req.body;
+  const { refreshToken } = req.cookies;
 
   try {
     if (!refreshToken)
@@ -355,12 +355,16 @@ const refreshToken = async (req, res) => {
     user.refreshTokens.push(newRefreshToken);
     await user.save();
 
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+      // sameSite: "None",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
     res.status(200).json({
       message: "New tokens generated",
-      tokens: {
-        accessToken: newAccessToken,
-        refreshToken: newRefreshToken,
-      },
+      token: newAccessToken,
     });
   } catch (error) {
     console.error("Refresh token error:", error);
